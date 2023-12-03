@@ -23,9 +23,8 @@ void menu(int option)
 {
     switch (option)
     {
-    case 1: // Switch to action select a shape
+    case SELECT_MODE: // Switch to action select a shape
     {
-
         // unable drawing mode
         if (Global::newShape) {
             delete Global::newShape;
@@ -44,7 +43,9 @@ void menu(int option)
 
 void shapeTypeMenu(int option)
 {
-    Global::isSelectingMode = false; // swich to Drawing mode
+    // swich to Drawing mode
+    Global::isSelectingMode = false;
+    Global::selectedShape = nullptr;
 
     Global::selectedShapeType = option;
 
@@ -75,7 +76,7 @@ void colorMenu(int option)
         break;
     }
 
-    if (Global::isSelectingMode && Global::selectedShape != nullptr)
+    if (Global::isSelectingMode && Global::selectedShape)
     {
         // Refill the selected shape with the selected color
         Global::selectedShape->setFillColor(Global::curFillColor);
@@ -87,10 +88,11 @@ void mouse(int button, int state, int x, int y)
 {
     if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
     {
+        // show MENU
         int shapeTypeSubMenuId = glutCreateMenu(shapeTypeMenu);
-        glutAddMenuEntry("Rectangle", 1);
-        glutAddMenuEntry("Circle", 2);
-        glutAddMenuEntry("Triangle", 3);
+        glutAddMenuEntry("Rectangle", RECTANGLE_CODE);
+        glutAddMenuEntry("Circle", CIRCLE_CODE);
+        glutAddMenuEntry("Triangle", TRIANGLE_CODE);
 
         int colorSubMenuId = glutCreateMenu(colorMenu);
         glutAddMenuEntry("Red", RED_CODE);
@@ -99,7 +101,7 @@ void mouse(int button, int state, int x, int y)
 
         int mainMenuId = glutCreateMenu(menu);
         glutAddSubMenu("Choose Shape Type", shapeTypeSubMenuId);
-        glutAddMenuEntry("Switch to Action Select Shape", 1);
+        glutAddMenuEntry("Switch to Action Select Shape", SELECT_MODE);
         glutAddSubMenu("Select Color", colorSubMenuId);
         // Add additional menu entries for other options
 
@@ -110,7 +112,6 @@ void mouse(int button, int state, int x, int y)
 void display()
 {
     // Render here
-    // STEP 5
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Create instances of the shapes
@@ -132,7 +133,6 @@ void display()
     // Draw other shapes...
 
     glFlush();
-    // End STEP 5
     
     // Swap buffers
     glutSwapBuffers();
@@ -150,7 +150,6 @@ void reshape(int width, int height)
 
 int main(int argc, char** argv)
 {
-
     // Initialize GLUT
     glutInit(&argc, argv);
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);

@@ -145,16 +145,18 @@ public:
     }
 };
 
+#include "Define.h"
+
 class FactoryShape {
 public:
     static Shape* getShape(int shapeType) {
         switch (shapeType)
         {
-        case 1:
+        case CIRCLE_CODE:
             return new Circle();
-        case 2:
+        case RECTANGLE_CODE:
             return new Rectangle();
-        case 3:
+        case TRIANGLE_CODE:
             return new EquilateralTriangle();
         default:
             return new Rectangle();
