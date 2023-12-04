@@ -88,6 +88,7 @@ void colorMenu(int option)
 
 void mouse(int button, int state, int x, int y)
 {
+    y = glutGet(GLUT_WINDOW_HEIGHT) - y;
     if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
     {
         // show MENU
@@ -121,28 +122,42 @@ void mouse(int button, int state, int x, int y)
 
             // drawing mode
             if (state == GLUT_DOWN) {
+                // add newShape to DrawApp
+                Global::drawingApp.addLayer(++Global::maxLayer);
+                Global::drawingApp.addShapeToLayer(Global::maxLayer, Global::newShape);
+                
+                Global::newShape->setLayer(Global::maxLayer);
+                Global::newShape->setFillColor(Global::curFillColor);
+
                 // Start Point
                 printf("Start point: (%d,%d)\n", x, y);
-                Global::newShape->setStartPoint(Point(x,y));
+                Global::newShape->setStartPoint(Point(x, y));
             }
             else if (state == GLUT_UP) {
                 // End Point
                 printf("End point: (%d,%d)\n", x, y);
                 Global::newShape->setEndPoint(Point(x, y));
 
-                // add newShape to DrawApp
-                Global::newShape->setLayer(++Global::maxLayer);
-                Global::newShape->setFillColor(Global::curFillColor);
-                
-                Global::drawingApp.addLayer(Global::maxLayer);
-                Global::drawingApp.addShapeToLayer(Global::maxLayer, Global::newShape);
-
-                Global::newShape = nullptr;
+                Global::newShape = FactoryShape::getShape(Global::selectedShapeType);
 
                 // redraw to add new shape
                 glutPostRedisplay();
             }
         }
+    }
+}
+
+void motion(int x, int y) {
+    if (Global::newShape) {
+         y = glutGet(GLUT_WINDOW_HEIGHT) - y;
+        // draw shape while moving 
+       
+        // End Point
+        printf("Moving point: (%d,%d)\n", x, y);
+        Global::newShape->setEndPoint(Point(x, y));
+
+        // redraw to add new shape
+        glutPostRedisplay();
     }
 }
 
@@ -185,8 +200,11 @@ int main(int argc, char** argv)
     // Set the reshape callback
     glutReshapeFunc(reshape);
 
-    // Register the mouse callback - STEP 4
+    // Register the mouse callback
     glutMouseFunc(mouse);
+
+    // Register the motion callback - drawing
+    glutMotionFunc(motion);
 
     // Enter the main loop
     glutMainLoop();
