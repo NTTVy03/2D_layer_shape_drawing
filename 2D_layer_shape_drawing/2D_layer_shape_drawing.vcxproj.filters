@@ -29,13 +29,16 @@
     <ClInclude Include="Global.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Layer.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="RGB.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Define.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="VirtualScreen.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="Util.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

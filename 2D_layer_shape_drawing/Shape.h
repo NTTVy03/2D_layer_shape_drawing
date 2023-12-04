@@ -4,6 +4,7 @@
 #include <GL/glut.h>
 
 #include "RGB.h"
+#include <stack>
 
 using namespace std;
 
@@ -32,6 +33,43 @@ public:
             Point v2 = vertices[(i + 1) % len];
 
             ShapeDrawer::drawLine(v1, v2);
+        }
+    }
+
+    static void drawCircle(int radius, Point center, RGBColor color = RGBColor::WHITE) {
+        glColor3ub(color.r(), color.g(), color.b());
+
+        if (radius <= 0) return;
+
+        int xT = center.x;
+        int yT = center.y;
+
+        ShapeDrawer::setPixel(0 + xT, radius + yT);
+        ShapeDrawer::setPixel(0 + xT, -radius + yT);
+        ShapeDrawer::setPixel(radius + xT, 0 + yT);
+        ShapeDrawer::setPixel(-radius + xT, 0 + yT);
+
+        int x = 0;
+        int y = radius;
+        int p = (int)5 / 4 - radius;
+
+        while (x < y) {
+            int xM = x + 1;
+            int yM = y - (int)1 / 2;
+
+            if (p < 0) {
+                p = p + 2 * x + 3;
+            }
+            else {
+                p = p + 2 * x - 2 * y + 5;
+                y--;
+            }
+
+            x++;
+            ShapeDrawer::setPixel(x + xT, y + yT);	ShapeDrawer::setPixel(-x + xT, y + yT);
+            ShapeDrawer::setPixel(x + xT, -y + yT);	ShapeDrawer::setPixel(-x + xT, -y + yT);
+            ShapeDrawer::setPixel(y + xT, x + yT);	ShapeDrawer::setPixel(-y + xT, x + yT);
+            ShapeDrawer::setPixel(y + xT, -x + yT);	ShapeDrawer::setPixel(-y + xT, -x + yT);
         }
     }
 
@@ -95,6 +133,53 @@ public:
             }
         }
     }
+
+    static void fillColor(Point startFillPoint, RGBColor fillColor) {
+        glColor3ub(fillColor.r(), fillColor.g(), fillColor.b());
+
+        // Non-recursive implementation
+        stack<pair<int, int>> s;
+
+        int x = startFillPoint.x;
+        int y = startFillPoint.y;
+
+        s.push(make_pair(x, y));
+
+        while (!s.empty()) {
+            pair<int, int> p = s.top();
+            s.pop();
+
+            x = p.first;
+            y = p.second;
+            
+            /*
+            get pixel from virtual screen: (x,y), color, layer, isBounder
+
+            if (x,y) is Bounder of this layer -> continue;
+            else:
+                color for (x,y) -> set it to bounder of layer
+                add 4 neighbour pixels
+            */
+            
+            /* 
+            Cell* cell = canvas->getCellAt(y, x);
+            if (cell->layer() == _layer && (cell->color() == _color || cell->isBounder())) {
+                continue;
+            }
+
+            setPixel(x, y, _color, _layer, false, canvas);
+
+            if (isValidPos(x + 1, y, canvas))
+                s.push(make_pair(x + 1, y));
+            if (isValidPos(x - 1, y, canvas))
+                s.push(make_pair(x - 1, y));
+            if (isValidPos(x, y + 1, canvas))
+                s.push(make_pair(x, y + 1));
+            if (isValidPos(x, y - 1, canvas))
+                s.push(make_pair(x, y - 1));
+            */
+        }
+    }
 };
 
 class Shape {
@@ -108,6 +193,10 @@ public:
 
     Shape(const Point& startPoint, const Point& endPoint, int layer)
         : startPoint(startPoint), endPoint(endPoint), layer(layer) {}
+
+    int getLayer() { return layer; }
+    Point getStartPoint() { return startPoint; }
+    Point getEndPoint() { return endPoint; }
 
     void setFillColor(RGBColor color) {
         fillColor = color;
@@ -126,8 +215,12 @@ public:
         layer = l;
     }
 
+    void setSelected() {}
+    void setUnselected() {}
+
     virtual void draw() = 0;
     virtual void identifyVertices() = 0;
+
 };
 
 class Line : public Shape {
@@ -185,49 +278,15 @@ public:
         : Shape(startPoint, startPoint, layer), radius(radius) {}
 
     void identifyVertices() override {
-        int dx = abs(startPoint.x - endPoint.x);
-        int dy = abs(startPoint.y - endPoint.y);
-        radius = min(dx, dy);
-        center = Point(min(startPoint.x, endPoint.x) + radius, min(startPoint.y, endPoint.y) + radius);
+        int dx = (startPoint.x - endPoint.x);
+        int dy = (startPoint.y - endPoint.y);
+        radius = min(abs(dx)/2, abs(dy)/2);
+
+        center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
     }
 
     void draw() override {
-        if (radius <= 0) return;
-
-        // RGBColor color = RGBColor(255, 0, 0);
-
-        // glColor3ub(color.r(), color.g(), color.b());
-
-        int xT = center.x;
-        int yT = center.y;
-
-        ShapeDrawer::setPixel(0 + xT, radius + yT);
-        ShapeDrawer::setPixel(0 + xT, -radius + yT);
-        ShapeDrawer::setPixel(radius + xT, 0 + yT);
-        ShapeDrawer::setPixel(-radius + xT, 0 + yT);
-
-        int x = 0;
-        int y = radius;
-        int p = (int)5 / 4 - radius;
-
-        while (x < y) {
-            int xM = x + 1;
-            int yM = y - (int)1 / 2;
-
-            if (p < 0) {
-                p = p + 2 * x + 3;
-            }
-            else {
-                p = p + 2 * x - 2 * y + 5;
-                y--;
-            }
-
-            x++;
-            ShapeDrawer::setPixel(x + xT, y + yT);	ShapeDrawer::setPixel(-x + xT, y + yT);
-            ShapeDrawer::setPixel(x + xT, -y + yT);	ShapeDrawer::setPixel(-x + xT, -y + yT);
-            ShapeDrawer::setPixel(y + xT, x + yT);	ShapeDrawer::setPixel(-y + xT, x + yT);
-            ShapeDrawer::setPixel(y + xT, -x + yT);	ShapeDrawer::setPixel(-y + xT, -x + yT);
-        }
+        ShapeDrawer::drawCircle(radius, center);
     }
 };
 
@@ -283,7 +342,7 @@ public:
         case TRIANGLE_CODE:
             return new EquilateralTriangle();
         default:
-            return new Rectangle();
+            return new Line();
         }
     }
 };

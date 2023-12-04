@@ -135,8 +135,9 @@
     <ClInclude Include="Define.h" />
     <ClInclude Include="Drawing.h" />
     <ClInclude Include="Global.h" />
-    <ClInclude Include="Layer.h" />
     <ClInclude Include="RGB.h" />
+    <ClInclude Include="Util.h" />
+    <ClInclude Include="VirtualScreen.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -13,9 +13,13 @@ const RGBColor RGBColor::GREEN = RGBColor(0,255,0);
 const RGBColor RGBColor::BLUE = RGBColor(0,0,255);
 
 // Value for Global variable
+int Global::height = 600;
+int Global::width = 800;
+Canvas Global::canvas = Canvas(height, width);
+
 int Global::maxLayer = 0;
-int Global::selectedShapeType = 0;  // 0: No shape selected, 1: Rectangle, 2: Circle, 3: Triangle
-Shape* Global::newShape = nullptr;
+int Global::selectedShapeType = LINE_CODE;  // 0: No shape selected, 1: Rectangle, 2: Circle, 3: Triangle
+Shape* Global::newShape = FactoryShape::getShape(LINE_CODE);
 Shape* Global::selectedShape = nullptr;
 bool Global::isSelectingMode = false; // is in selecting mode
 RGBColor Global::curFillColor = RGBColor::WHITE;
@@ -27,15 +31,7 @@ void menu(int option)
     {
     case SELECT_MODE: // Switch to action select a shape
     {
-        // unable drawing mode
-        if (Global::newShape) {
-            delete Global::newShape;
-        }
-        Global::newShape = nullptr;
-
-        Global::isSelectingMode = true;
-        Global::selectedShape = nullptr;
-
+        Global::switchMode(true);
         printf("Action: Select a shape\n");
         break;
     }
@@ -46,15 +42,9 @@ void menu(int option)
 void shapeTypeMenu(int option)
 {
     // swich to Drawing mode
-    Global::isSelectingMode = false;
-    Global::selectedShape = nullptr;
+    Global::switchMode(false);
 
     Global::selectedShapeType = option;
-
-    if (Global::newShape) {
-        delete Global::newShape;
-    }
-
     Global::newShape = FactoryShape::getShape(Global::selectedShapeType);
 
     printf("Action: Select shape type %d\n", option);
@@ -88,7 +78,7 @@ void colorMenu(int option)
 
 void mouse(int button, int state, int x, int y)
 {
-    y = glutGet(GLUT_WINDOW_HEIGHT) - y;
+    y = Global::height - y;
     if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
     {
         // show MENU
@@ -116,6 +106,8 @@ void mouse(int button, int state, int x, int y)
             // selecting mode
             if (state == GLUT_UP) {
                 // Find layer that (x,y) in rectangle (Start Point) - (End Point)
+                Global::selectedShape = Global::drawingApp.findShapeContains(x, y);
+                Global::selectedShape->setSelected();
             }
         }
         else if (Global::newShape) {
@@ -124,19 +116,16 @@ void mouse(int button, int state, int x, int y)
             // drawing mode
             if (state == GLUT_DOWN) {
                 // add newShape to DrawApp
-                Global::drawingApp.addLayer(++Global::maxLayer);
-                Global::drawingApp.addShapeToLayer(Global::maxLayer, Global::newShape);
+                Global::drawingApp.addShape(Global::newShape);
                 
-                Global::newShape->setLayer(Global::maxLayer);
+                Global::newShape->setLayer(++Global::maxLayer);
                 Global::newShape->setFillColor(Global::curFillColor);
 
-                // Start Point
-                printf("Start point: (%d,%d)\n", x, y);
+                // printf("Start point: (%d,%d)\n", x, y);
                 Global::newShape->setStartPoint(Point(x, y));
             }
             else if (state == GLUT_UP) {
-                // End Point
-                printf("End point: (%d,%d)\n", x, y);
+                // printf("End point: (%d,%d)\n", x, y);
                 Global::newShape->setEndPoint(Point(x, y));
 
                 Global::newShape = FactoryShape::getShape(Global::selectedShapeType);
@@ -149,13 +138,12 @@ void mouse(int button, int state, int x, int y)
 }
 
 void motion(int x, int y) {
+    // draw shape while moving 
     if (Global::newShape) {
-         y = glutGet(GLUT_WINDOW_HEIGHT) - y;
-        // draw shape while moving 
+         y = Global::height - y;
        
-        // End Point
-        printf("Moving point: (%d,%d)\n", x, y);
-        Global::newShape->setEndPoint(Point(x, y));
+         // printf("Moving point: (%d,%d)\n", x, y);
+         Global::newShape->setEndPoint(Point(x, y));
 
         // redraw to add new shape
         glutPostRedisplay();
@@ -167,7 +155,9 @@ void display()
     // Render here    
     glClear(GL_COLOR_BUFFER_BIT);
 
-    Global::drawingApp.drawLayers();
+    Global::canvas.rebuild(Global::height, Global:: width);
+
+    Global::drawingApp.drawShapes();
 
     glFlush();
     
@@ -183,6 +173,11 @@ void reshape(int width, int height)
     glLoadIdentity();
     gluOrtho2D(0, width, 0, height);
     glMatrixMode(GL_MODELVIEW);
+
+    // match Canvas with new size of screen
+    Global::height = height;
+    Global::width = width;
+    Global::canvas.rebuild(height, width);
 }
 
 int main(int argc, char** argv)
@@ -192,7 +187,7 @@ int main(int argc, char** argv)
     glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
 
     // Create a window
-    glutInitWindowSize(800, 600);
+    glutInitWindowSize(Global::width, Global::height);
     glutCreateWindow("Drawing App");
 
     // Set the display callback

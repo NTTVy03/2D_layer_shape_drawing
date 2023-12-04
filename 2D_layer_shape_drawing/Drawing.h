@@ -1,52 +1,45 @@
 #pragma once
 
-#include "Layer.h"
+#include "Shape.h"
+#include "Util.h"
 
 class DrawingApp {
 private:
-    vector<Layer> layers;
-
+    vector<Shape*> shapes;
 public:
-    void addLayer(int layerId) {
-        Layer layer(layerId);
-        layers.push_back(layer);
+    void addShape(Shape* newShape) {
+        shapes.push_back(newShape);
     }
 
-    void addShapeToLayer(int layerId, Shape* shape) {
-        for (auto& layer : layers) {
-            if (layer.getId() == layerId) {
-                layer.addShape(shape);
-                break;
+    void drawShapes() const {
+        for (const auto& shape : shapes) {
+            shape->draw();
+        }
+    }
+
+    void removeShapebyLayer(int layer) {
+        int sz = shapes.size();
+
+        for (int shapeIndex = 0; shapeIndex < sz; shapeIndex++) {
+            if (shapes[shapeIndex]->getLayer() == layer) {
+                shapes.erase(shapes.begin() + shapeIndex);
+            }
+        }
+    }    
+
+    Shape* findShapeContains(int x, int y) {
+        for (const auto& shape : shapes) {
+            int minX = min(shape->getStartPoint().x, shape->getEndPoint().x);
+            int maxX = max(shape->getStartPoint().x, shape->getEndPoint().x);
+
+            int minY = min(shape->getStartPoint().y, shape->getEndPoint().y);
+            int maxY = max(shape->getStartPoint().y, shape->getEndPoint().y);
+
+            if (isIn(x, minX, maxX) && isIn(y, minY, maxY)) {
+                return shape;
             }
         }
     }
-
-    void drawLayers() const {
-        for (const auto& layer : layers) {
-            layer.drawShapes();
-        }
-    }
-
-    void removeLayer(int layerId) {
-        auto it = find_if(layers.begin(), layers.end(), [layerId](const Layer& layer) {
-            return layer.getId() == layerId;
-            });
-
-        if (it != layers.end()) {
-            layers.erase(it);
-        }
-    }
-
-    void removeShapeFromLayer(int layerId, int shapeIndex) {
-        auto it = find_if(layers.begin(), layers.end(), [layerId](const Layer& layer) {
-            return layer.getId() == layerId;
-            });
-
-        if (it != layers.end()) {
-            it->removeShape(shapeIndex);
-        }
-    }
-
     // Add any additional methods you need for the DrawingApp class
 };
 
