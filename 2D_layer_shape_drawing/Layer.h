@@ -20,7 +20,6 @@ public:
 
     void drawShapes() const {
         for (const auto& shape : shapes) {
-            shape->identifyVertices();
             shape->draw();
         }
     }

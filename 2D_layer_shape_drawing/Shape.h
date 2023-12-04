@@ -9,11 +9,92 @@ using namespace std;
 
 class Point {
 public:
-    float x;
-    float y;
+    int x;
+    int y;
 
     Point(): x(0), y(0) {}
-    Point(float x, float y) : x(x), y(y) {}
+    Point(int x, int y) : x(x), y(y) {}
+};
+
+class ShapeDrawer {
+public:
+    static void setPixel(int x, int y) {
+        glBegin(GL_POINTS);
+        glVertex2i(x, y);
+        glEnd();
+    }
+
+    static void drawShape(const vector<Point>& vertices) {
+        // Draw bounder
+        int len = vertices.size();
+        for (int i = 0; i < len; i++) {
+            Point v1 = vertices[i];
+            Point v2 = vertices[(i + 1) % len];
+
+            ShapeDrawer::drawLine(v1, v2);
+        }
+    }
+
+    static void drawLine(Point start, Point end, RGBColor color = RGBColor::WHITE) {
+        glColor3ub(color.r(), color.g(), color.b());
+
+        int x1 = start.x;
+        int y1 = start.y;
+
+        int x2 = end.x;
+        int y2 = end.y;
+
+        if (abs(x2 - x1) > abs(y2 - y1)) {
+            if (x1 > x2) {
+                swap(x1, x2);
+                swap(y1, y2);
+            }
+
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+
+            int sign = (y2 - y1 > 0) ? 1 : -1;
+            int p = 2 * dy - sign * dx;
+            int x = x1, y = y1;
+            while (x <= x2) {
+                ShapeDrawer::setPixel(x, y);
+                if (p >= 0) {
+                    p = p + 2 * dy - (sign > 0) * sign * 2 * dx;
+                    y = y + (sign > 0) * sign;
+                }
+                else {
+                    p = p + 2 * dy - (sign < 0) * sign * 2 * dx;
+                    y = y + (sign < 0) * sign;
+                }
+                x = x + 1;
+            }
+        }
+        else {
+            if (y1 > y2) {
+                swap(x1, x2);
+                swap(y1, y2);
+            }
+
+            int dx = x2 - x1;
+            int dy = y2 - y1;
+
+            int sign = (x2 - x1 > 0) ? 1 : -1;
+            int p = -2 * dx + sign * dy;
+            int x = x1, y = y1;
+            while (y <= y2) {
+                ShapeDrawer::setPixel(x, y);
+                if (p >= 0) {
+                    p = p - 2 * dx + (sign < 0) * sign * 2 * dy;
+                    x = x + (sign < 0) * sign;
+                }
+                else {
+                    p = p - 2 * dx + (sign > 0) * sign * 2 * dy;;
+                    x = x + (sign > 0) * sign;
+                }
+                y = y + 1;
+            }
+        }
+    }
 };
 
 class Shape {
@@ -38,6 +119,7 @@ public:
 
     void setEndPoint(Point point) {
         endPoint = point;
+        identifyVertices();
     }
 
     void setLayer(int l) {
@@ -48,15 +130,16 @@ public:
     virtual void identifyVertices() = 0;
 };
 
-class ShapeDrawer {
+class Line : public Shape {
 public:
-    static void drawShape(const vector<Point>& vertices) {
-        glBegin(GL_LINE_LOOP);
-        for (const auto& vertex : vertices) {
-            glVertex2f(vertex.x, vertex.y);
-        }
-        glEnd();
+    Line() {};
+
+    void identifyVertices() override {}
+
+    void draw() override {
+        ShapeDrawer::drawLine(startPoint, endPoint, fillColor);
     }
+
 };
 
 class Rectangle : public Shape {
@@ -94,30 +177,57 @@ public:
 class Circle : public Shape {
 protected:
     float radius;
-
+    Point center;
 public:
-    Circle(): radius(0) {}
+    Circle() {}
 
     Circle(const Point& startPoint, float radius, int layer)
         : Shape(startPoint, startPoint, layer), radius(radius) {}
 
     void identifyVertices() override {
-        // Circles do not have distinct vertices, so this method may not be relevant for circles
+        int dx = abs(startPoint.x - endPoint.x);
+        int dy = abs(startPoint.y - endPoint.y);
+        radius = min(dx, dy);
+        center = Point(min(startPoint.x, endPoint.x) + radius, min(startPoint.y, endPoint.y) + radius);
     }
 
     void draw() override {
-        const int numSegments = 100;
-        const float angleIncrement = 2.0 * 3.14159265358979323846 / numSegments;
+        if (radius <= 0) return;
 
-        vector<Point> vertices;
-        for (int i = 0; i < numSegments; ++i) {
-            float angle = i * angleIncrement;
-            float x = startPoint.x + cos(angle) * radius;
-            float y = startPoint.y + sin(angle) * radius;
-            vertices.emplace_back(x, y);
+        // RGBColor color = RGBColor(255, 0, 0);
+
+        // glColor3ub(color.r(), color.g(), color.b());
+
+        int xT = center.x;
+        int yT = center.y;
+
+        ShapeDrawer::setPixel(0 + xT, radius + yT);
+        ShapeDrawer::setPixel(0 + xT, -radius + yT);
+        ShapeDrawer::setPixel(radius + xT, 0 + yT);
+        ShapeDrawer::setPixel(-radius + xT, 0 + yT);
+
+        int x = 0;
+        int y = radius;
+        int p = (int)5 / 4 - radius;
+
+        while (x < y) {
+            int xM = x + 1;
+            int yM = y - (int)1 / 2;
+
+            if (p < 0) {
+                p = p + 2 * x + 3;
+            }
+            else {
+                p = p + 2 * x - 2 * y + 5;
+                y--;
+            }
+
+            x++;
+            ShapeDrawer::setPixel(x + xT, y + yT);	ShapeDrawer::setPixel(-x + xT, y + yT);
+            ShapeDrawer::setPixel(x + xT, -y + yT);	ShapeDrawer::setPixel(-x + xT, -y + yT);
+            ShapeDrawer::setPixel(y + xT, x + yT);	ShapeDrawer::setPixel(-y + xT, x + yT);
+            ShapeDrawer::setPixel(y + xT, -x + yT);	ShapeDrawer::setPixel(-y + xT, -x + yT);
         }
-
-        ShapeDrawer::drawShape(vertices);
     }
 };
 
@@ -164,6 +274,8 @@ public:
     static Shape* getShape(int shapeType) {
         switch (shapeType)
         {
+        case LINE_CODE:
+            return new Line();
         case CIRCLE_CODE:
             return new Circle();
         case RECTANGLE_CODE:

@@ -12,3 +12,4 @@
 #define RECTANGLE_CODE 1
 #define CIRCLE_CODE 2
 #define TRIANGLE_CODE 3
+#define LINE_CODE 4

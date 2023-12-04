@@ -93,6 +93,7 @@ void mouse(int button, int state, int x, int y)
     {
         // show MENU
         int shapeTypeSubMenuId = glutCreateMenu(shapeTypeMenu);
+        glutAddMenuEntry("Line", LINE_CODE);
         glutAddMenuEntry("Rectangle", RECTANGLE_CODE);
         glutAddMenuEntry("Circle", CIRCLE_CODE);
         glutAddMenuEntry("Triangle", TRIANGLE_CODE);
@@ -104,7 +105,7 @@ void mouse(int button, int state, int x, int y)
 
         int mainMenuId = glutCreateMenu(menu);
         glutAddSubMenu("Choose Shape Type", shapeTypeSubMenuId);
-        glutAddMenuEntry("Switch to Action Select Shape", SELECT_MODE);
+        glutAddMenuEntry("Select Shape", SELECT_MODE);
         glutAddSubMenu("Select Color", colorSubMenuId);
         // Add additional menu entries for other options
 
@@ -163,7 +164,7 @@ void motion(int x, int y) {
 
 void display()
 {
-    // Render here
+    // Render here    
     glClear(GL_COLOR_BUFFER_BIT);
 
     Global::drawingApp.drawLayers();
