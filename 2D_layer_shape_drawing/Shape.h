@@ -32,6 +32,18 @@ public:
         fillColor = color;
     }
 
+    void setStartPoint(Point point) {
+        startPoint = point;
+    }
+
+    void setEndPoint(Point point) {
+        endPoint = point;
+    }
+
+    void setLayer(int l) {
+        layer = l;
+    }
+
     virtual void draw() = 0;
     virtual void identifyVertices() = 0;
 };

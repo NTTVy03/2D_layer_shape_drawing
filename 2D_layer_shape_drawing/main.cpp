@@ -13,11 +13,13 @@ const RGBColor RGBColor::GREEN = RGBColor(0,255,0);
 const RGBColor RGBColor::BLUE = RGBColor(0,0,255);
 
 // Value for Global variable
+int Global::maxLayer = 0;
 int Global::selectedShapeType = 0;  // 0: No shape selected, 1: Rectangle, 2: Circle, 3: Triangle
 Shape* Global::newShape = nullptr;
 Shape* Global::selectedShape = nullptr;
 bool Global::isSelectingMode = false; // is in selecting mode
 RGBColor Global::curFillColor = RGBColor::WHITE;
+DrawingApp Global::drawingApp = DrawingApp();
 
 void menu(int option)
 {
@@ -107,6 +109,41 @@ void mouse(int button, int state, int x, int y)
 
         glutAttachMenu(GLUT_RIGHT_BUTTON);
     }
+    else if (button == GLUT_LEFT_BUTTON) {
+        if (Global::isSelectingMode) {
+            // selecting mode
+            if (state == GLUT_UP) {
+                // Find layer that (x,y) in rectangle (Start Point) - (End Point)
+            }
+        }
+        else if (Global::newShape) {
+            printf("Drawing mode\n");
+
+            // drawing mode
+            if (state == GLUT_DOWN) {
+                // Start Point
+                printf("Start point: (%d,%d)\n", x, y);
+                Global::newShape->setStartPoint(Point(x,y));
+            }
+            else if (state == GLUT_UP) {
+                // End Point
+                printf("End point: (%d,%d)\n", x, y);
+                Global::newShape->setEndPoint(Point(x, y));
+
+                // add newShape to DrawApp
+                Global::newShape->setLayer(++Global::maxLayer);
+                Global::newShape->setFillColor(Global::curFillColor);
+                
+                Global::drawingApp.addLayer(Global::maxLayer);
+                Global::drawingApp.addShapeToLayer(Global::maxLayer, Global::newShape);
+
+                Global::newShape = nullptr;
+
+                // redraw to add new shape
+                glutPostRedisplay();
+            }
+        }
+    }
 }
 
 void display()
@@ -114,23 +151,7 @@ void display()
     // Render here
     glClear(GL_COLOR_BUFFER_BIT);
 
-    // Create instances of the shapes
-    Rectangle rectangle(Point(100.0f, 100.0f), Point(300.0f, 200.0f), 1);
-    Circle circle(Point(400.0f, 200.0f), 100.0f, 1);
-    EquilateralTriangle triangle(Point(100.0f, 300.0f), Point(300.0f, 400.0f), 1);
-    // Create more instances of other shapes...
-
-    // Identify the vertices of the shapes
-    rectangle.identifyVertices();
-    circle.identifyVertices();
-    triangle.identifyVertices();
-    // Identify vertices for other shapes...
-
-    // Draw the shapes
-    rectangle.draw();
-    circle.draw();
-    triangle.draw();
-    // Draw other shapes...
+    Global::drawingApp.drawLayers();
 
     glFlush();
     
