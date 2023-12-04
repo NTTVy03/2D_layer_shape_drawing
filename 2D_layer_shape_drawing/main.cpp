@@ -2,7 +2,6 @@
 #include <vector>
 
 #include "Define.h"
-#include "Drawing.h"
 #include "Global.h"
 
 // Define color
@@ -105,15 +104,22 @@ void mouse(int button, int state, int x, int y)
         if (Global::isSelectingMode) {
             // selecting mode
             if (state == GLUT_UP) {
-                // Find layer that (x,y) in rectangle (Start Point) - (End Point)
-                Global::selectedShape = Global::drawingApp.findShapeContains(x, y);
-                Global::selectedShape->setSelected();
+                // unselect old shape
+                if (Global::selectedShape) {
+                    Global::selectedShape->setUnselected();
+                }
+
+                // select new shape
+                Global::selectedShape = Global::drawingApp.findShapebyLayer(Global::canvas.getCellAt(x, y)->layer());
+
+                if (Global::selectedShape) {
+                    Global::selectedShape->setSelected();
+                }
             }
         }
         else if (Global::newShape) {
-            printf("Drawing mode\n");
+            //printf("Drawing mode\n");
 
-            // drawing mode
             if (state == GLUT_DOWN) {
                 // add newShape to DrawApp
                 Global::drawingApp.addShape(Global::newShape);

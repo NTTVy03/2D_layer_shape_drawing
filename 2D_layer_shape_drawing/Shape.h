@@ -278,9 +278,9 @@ public:
         : Shape(startPoint, startPoint, layer), radius(radius) {}
 
     void identifyVertices() override {
-        int dx = (startPoint.x - endPoint.x);
-        int dy = (startPoint.y - endPoint.y);
-        radius = min(abs(dx)/2, abs(dy)/2);
+        int dx = abs(startPoint.x - endPoint.x);
+        int dy = abs(startPoint.y - endPoint.y);
+        radius = min(dx/2, dy/2);
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
     }

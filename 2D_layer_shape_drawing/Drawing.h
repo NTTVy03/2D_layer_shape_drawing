@@ -2,6 +2,8 @@
 
 #include "Shape.h"
 #include "Util.h"
+#include "VirtualScreen.h"
+#include "Global.h"
 
 class DrawingApp {
 private:
@@ -27,18 +29,14 @@ public:
         }
     }    
 
-    Shape* findShapeContains(int x, int y) {
+    Shape* findShapebyLayer(int layer) {
         for (const auto& shape : shapes) {
-            int minX = min(shape->getStartPoint().x, shape->getEndPoint().x);
-            int maxX = max(shape->getStartPoint().x, shape->getEndPoint().x);
-
-            int minY = min(shape->getStartPoint().y, shape->getEndPoint().y);
-            int maxY = max(shape->getStartPoint().y, shape->getEndPoint().y);
-
-            if (isIn(x, minX, maxX) && isIn(y, minY, maxY)) {
+            if (shape->getLayer() == layer) {
                 return shape;
             }
         }
+
+        return nullptr;
     }
     // Add any additional methods you need for the DrawingApp class
 };

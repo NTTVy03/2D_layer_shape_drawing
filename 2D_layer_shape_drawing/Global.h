@@ -2,6 +2,7 @@
 
 #include "Shape.h"
 #include "VirtualScreen.h"
+#include "Drawing.h"
 
 class Global {
 public:
