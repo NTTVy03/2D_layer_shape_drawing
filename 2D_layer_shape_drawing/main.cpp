@@ -59,6 +59,9 @@ void colorMenu(int option)
     // Set the selected color for the next shape to be drawn
     switch (option)
     {
+    case NONE_CODE:
+        Global::curFillColor = RGBColor::NONE;
+        break;
     case RED_CODE:
         Global::curFillColor = RGBColor::RED;
         break;
@@ -85,11 +88,23 @@ void mouse(int button, int state, int x, int y)
         // show MENU
         int shapeTypeSubMenuId = glutCreateMenu(shapeTypeMenu);
         glutAddMenuEntry("Line", LINE_CODE);
+        glutAddMenuEntry("IR Triangle", IR_TRIANGLE_CODE);
+        glutAddMenuEntry("Equi Triangle", EQUI_TRIANGLE_CODE);
         glutAddMenuEntry("Rectangle", RECTANGLE_CODE);
+        glutAddMenuEntry("Square", SQUARE_CODE);
         glutAddMenuEntry("Circle", CIRCLE_CODE);
-        glutAddMenuEntry("Triangle", TRIANGLE_CODE);
+        glutAddMenuEntry("Ellipse", ELLIPSE_CODE);
+        glutAddMenuEntry("Hexagon", EQUI_HEXAGON_CODE);
+        glutAddMenuEntry("Pentagon", EQUI_PENTAGON_CODE);
+        glutAddMenuEntry("Arrow", ARROW_CODE);
+        glutAddMenuEntry("Star", STAR_CODE);
+        glutAddMenuEntry("Plus", PLUS_CODE);
+        glutAddMenuEntry("Minus", MINUS_CODE);
+        glutAddMenuEntry("Divide", DIVIDE_CODE);
+        glutAddMenuEntry("Times", TIMES_CODE);
 
         int colorSubMenuId = glutCreateMenu(colorMenu);
+        glutAddMenuEntry("None", NONE_CODE);
         glutAddMenuEntry("Red", RED_CODE);
         glutAddMenuEntry("Green", GREEN_CODE);
         glutAddMenuEntry("Blue", BLUE_CODE);
