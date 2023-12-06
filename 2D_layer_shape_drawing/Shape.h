@@ -2,9 +2,10 @@
 
 #include <vector>
 #include <GL/glut.h>
+#include <stack>
 
 #include "RGB.h"
-#include <stack>
+#include "VirtualScreen.h"
 
 using namespace std;
 
@@ -19,24 +20,27 @@ public:
 
 class ShapeDrawer {
 public:
-    static void setPixel(int x, int y) {
-        glBegin(GL_POINTS);
-        glVertex2i(x, y);
-        glEnd();
+    static void setPixel(Canvas& canvas, int x, int y, int layer, RGBColor color, bool isBounder) {
+        if (canvas.setCell(x,y, layer, color, isBounder)) {
+            glBegin(GL_POINTS);
+            glVertex2i(x, y);
+            glEnd();
+        }
     }
 
-    static void drawShape(const vector<Point>& vertices) {
+    static void drawShape(Canvas& canvas, int layer, const vector<Point>& vertices) {
         // Draw bounder
         int len = vertices.size();
         for (int i = 0; i < len; i++) {
             Point v1 = vertices[i];
             Point v2 = vertices[(i + 1) % len];
 
-            ShapeDrawer::drawLine(v1, v2);
+            ShapeDrawer::drawLine(canvas, layer, v1, v2);
         }
     }
 
-    static void drawCircle(int radius, Point center, RGBColor color = RGBColor::WHITE) {
+    static void drawCircle(Canvas &canvas,  int layer, int radius, Point center, RGBColor color = RGBColor::WHITE) {
+        bool isBounder = true;
         glColor3ub(color.r(), color.g(), color.b());
 
         if (radius <= 0) return;
@@ -44,10 +48,10 @@ public:
         int xT = center.x;
         int yT = center.y;
 
-        ShapeDrawer::setPixel(0 + xT, radius + yT);
-        ShapeDrawer::setPixel(0 + xT, -radius + yT);
-        ShapeDrawer::setPixel(radius + xT, 0 + yT);
-        ShapeDrawer::setPixel(-radius + xT, 0 + yT);
+        ShapeDrawer::setPixel(canvas, 0 + xT, radius + yT, layer, color, isBounder);
+        ShapeDrawer::setPixel(canvas, 0 + xT, -radius + yT, layer, color, isBounder);
+        ShapeDrawer::setPixel(canvas, radius + xT, 0 + yT, layer, color, isBounder);
+        ShapeDrawer::setPixel(canvas, -radius + xT, 0 + yT, layer, color, isBounder);
 
         int x = 0;
         int y = radius;
@@ -66,14 +70,17 @@ public:
             }
 
             x++;
-            ShapeDrawer::setPixel(x + xT, y + yT);	ShapeDrawer::setPixel(-x + xT, y + yT);
-            ShapeDrawer::setPixel(x + xT, -y + yT);	ShapeDrawer::setPixel(-x + xT, -y + yT);
-            ShapeDrawer::setPixel(y + xT, x + yT);	ShapeDrawer::setPixel(-y + xT, x + yT);
-            ShapeDrawer::setPixel(y + xT, -x + yT);	ShapeDrawer::setPixel(-y + xT, -x + yT);
+            ShapeDrawer::setPixel(canvas, x + xT, y + yT, layer, color, isBounder); 	ShapeDrawer::setPixel(canvas, -x + xT, y + yT, layer, color, isBounder);
+            ShapeDrawer::setPixel(canvas, x + xT, -y + yT, layer, color, isBounder);	ShapeDrawer::setPixel(canvas, -x + xT, -y + yT, layer, color, isBounder);
+            ShapeDrawer::setPixel(canvas, y + xT, x + yT, layer, color, isBounder); 	ShapeDrawer::setPixel(canvas, -y + xT, x + yT, layer, color, isBounder);
+            ShapeDrawer::setPixel(canvas, y + xT, -x + yT, layer, color, isBounder);	ShapeDrawer::setPixel(canvas, -y + xT, -x + yT, layer, color, isBounder);
         }
     }
 
-    static void drawLine(Point start, Point end, RGBColor color = RGBColor::WHITE) {
+    static void drawLine(Canvas& canvas, int layer, Point start, Point end, RGBColor color = RGBColor::WHITE) {
+        // line is always a bounder
+        bool isBounder = true;
+
         glColor3ub(color.r(), color.g(), color.b());
 
         int x1 = start.x;
@@ -95,7 +102,7 @@ public:
             int p = 2 * dy - sign * dx;
             int x = x1, y = y1;
             while (x <= x2) {
-                ShapeDrawer::setPixel(x, y);
+                ShapeDrawer::setPixel(canvas, x, y, layer, color, isBounder);
                 if (p >= 0) {
                     p = p + 2 * dy - (sign > 0) * sign * 2 * dx;
                     y = y + (sign > 0) * sign;
@@ -120,7 +127,7 @@ public:
             int p = -2 * dx + sign * dy;
             int x = x1, y = y1;
             while (y <= y2) {
-                ShapeDrawer::setPixel(x, y);
+                ShapeDrawer::setPixel(canvas, x, y, layer, color, isBounder);
                 if (p >= 0) {
                     p = p - 2 * dx + (sign < 0) * sign * 2 * dy;
                     x = x + (sign < 0) * sign;
@@ -134,51 +141,54 @@ public:
         }
     }
 
-    static void fillColor(Point startFillPoint, RGBColor fillColor) {
+    static void fillColor(Canvas& canvas, int layer, Point startFillPoint, RGBColor fillColor) {
+        bool isBounder = false;
         glColor3ub(fillColor.r(), fillColor.g(), fillColor.b());
 
         // Non-recursive implementation
-        stack<pair<int, int>> s;
+        stack<Point> s;
 
         int x = startFillPoint.x;
         int y = startFillPoint.y;
 
-        s.push(make_pair(x, y));
+        s.push(startFillPoint);
 
         while (!s.empty()) {
-            pair<int, int> p = s.top();
+            Point p = s.top();
             s.pop();
 
-            x = p.first;
-            y = p.second;
+            x = p.x;
+            y = p.y;
             
-            /*
-            get pixel from virtual screen: (x,y), color, layer, isBounder
+            Cell* cell = canvas.getCellAt(x,y);
 
-            if (x,y) is Bounder of this layer -> continue;
-            else:
-                color for (x,y) -> set it to bounder of layer
-                add 4 neighbour pixels
-            */
-            
-            /* 
-            Cell* cell = canvas->getCellAt(y, x);
-            if (cell->layer() == _layer && (cell->color() == _color || cell->isBounder())) {
-                continue;
-            }
+            if (cell->layer() == layer && cell->isBounder()) continue; // bounder of layer
+            if (cell->layer() == layer && cell->color() == fillColor) continue; // already color
 
-            setPixel(x, y, _color, _layer, false, canvas);
+            ShapeDrawer::setPixel(canvas, x, y, layer, fillColor, isBounder);
 
-            if (isValidPos(x + 1, y, canvas))
-                s.push(make_pair(x + 1, y));
-            if (isValidPos(x - 1, y, canvas))
-                s.push(make_pair(x - 1, y));
-            if (isValidPos(x, y + 1, canvas))
-                s.push(make_pair(x, y + 1));
-            if (isValidPos(x, y - 1, canvas))
-                s.push(make_pair(x, y - 1));
-            */
+            if (canvas.isValidCell(x + 1, y))
+                s.push(Point(x + 1, y));
+            if (canvas.isValidCell(x - 1, y))
+                s.push(Point(x - 1, y));
+            if (canvas.isValidCell(x, y + 1))
+                s.push(Point(x, y + 1));
+            if (canvas.isValidCell(x, y - 1))
+                s.push(Point(x, y - 1));
         }
+    }
+
+    static Point getCentroid(vector<Point> vertices) {
+        int len = vertices.size();
+        int sumX = 0;
+        int sumY = 0;
+
+        for (int i = 0; i < len; i++) {
+            sumX += vertices[i].x;
+            sumY += vertices[i].y;
+        }
+
+        return Point(sumX / len, sumY / len);
     }
 };
 
@@ -215,12 +225,17 @@ public:
         layer = l;
     }
 
-    void setSelected() {}
-    void setUnselected() {}
+    void setSelected(Canvas& canvas) {}
+    void setUnselected(Canvas& canvas) {}
 
-    virtual void draw() = 0;
+    virtual void draw(Canvas &canvas) = 0;
     virtual void identifyVertices() = 0;
+    virtual Point getStartFillPoint() = 0;
 
+    void render(Canvas& canvas) {
+        draw(canvas);
+        ShapeDrawer::fillColor(canvas, layer, getStartFillPoint(), fillColor);
+    }
 };
 
 class Line : public Shape {
@@ -229,8 +244,12 @@ public:
 
     void identifyVertices() override {}
 
-    void draw() override {
-        ShapeDrawer::drawLine(startPoint, endPoint, fillColor);
+    Point getStartFillPoint() override {
+        return startPoint;
+    }
+
+    void draw(Canvas& canvas) override {
+        ShapeDrawer::drawLine(canvas, this->getLayer(), startPoint, endPoint, fillColor);
     }
 
 };
@@ -262,8 +281,12 @@ public:
         vertices.push_back(bottomLeft);
     }
 
-    void draw() override {
-        ShapeDrawer::drawShape(vertices);
+    Point getStartFillPoint() override {
+        return ShapeDrawer::getCentroid(vertices);
+    }
+
+    void draw(Canvas& canvas) override {
+        ShapeDrawer::drawShape(canvas, this->getLayer(), vertices);
     }
 };
 
@@ -285,8 +308,12 @@ public:
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
     }
 
-    void draw() override {
-        ShapeDrawer::drawCircle(radius, center);
+    Point getStartFillPoint() override {
+        return center;
+    }
+
+    void draw(Canvas& canvas) override {
+        ShapeDrawer::drawCircle(canvas, this->getLayer(), radius, center);
     }
 };
 
@@ -321,8 +348,12 @@ public:
         vertices.push_back(right);
     }
 
-    void draw() override {
-        ShapeDrawer::drawShape(vertices);
+    Point getStartFillPoint() override {
+        return ShapeDrawer::getCentroid(vertices);
+    }
+
+    void draw(Canvas& canvas) override {
+        ShapeDrawer::drawShape(canvas, this->getLayer(), vertices);
     }
 };
 

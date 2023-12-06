@@ -7,44 +7,39 @@ using namespace std;
 
 class Cell { // virtual Pixel
 private:
-	int _x, _y;
 	int _layer;
 	RGBColor _color;
 	bool _isBounder;
 public:
 	Cell() {
-		_x = -1;
-		_y = -1;
 		_layer = -1;
-		_color = RGBColor::WHITE;
+		_color = RGBColor::BLACK;
 		_isBounder = false;
 	}
 
-	Cell(int x, int y, int layer, RGBColor color, bool isBounder) {
-		_x = x;
-		_y = y;
+	Cell(int layer, RGBColor color, bool isBounder) {
 		_layer = layer;
 		_color = color;
 		_isBounder = isBounder;
 	}
 
-	int x() { return _x; }
-	int y() { return _y; }
 	int layer() { return _layer; }
 	RGBColor color() { return _color; }
-	bool isBouder() { return _isBounder; }
+	bool isBounder() { return _isBounder; }
 
-	void setX(int x) { _x = x; }
-	void setY(int y) { _y = y; }
 	void setLayer(int layer) { _layer = layer; }
 	void setColor(RGBColor color) { _color = color; }
 	void setIsBounder(bool isBounder) { _isBounder = isBounder; }
-	void set(int x, int y, int layer, RGBColor color, bool isBounder) {
-		_x = x;
-		_y = y;
+	void set(int layer, RGBColor color, bool isBounder) {
 		_layer = layer;
 		_color = color;
 		_isBounder = isBounder;
+	}
+
+	void clear() {
+		_layer = -1;
+		_color = RGBColor::BLACK;
+		_isBounder = false;
 	}
 };
 
@@ -75,11 +70,14 @@ public:
 				_screen[i][j] = new Cell();
 			}
 		}
+
+		printf("Create Canvas\n");
+		printf("Canvas: width = %d, height = %d\n", _screen[0].size(), _screen.size());
 	}
 
-	~Canvas() { clear(); }
+	~Canvas() { erase(); }
 
-	void clear() {
+	void erase() {
 		for (int i = 0; i < _height; i++) {
 			for (int j = 0; j < _width; j++) {
 				delete _screen[i][j];
@@ -92,6 +90,15 @@ public:
 
 	int _h() { return _height; }
 	int _w() { return _width; }
+
+	void clear() {
+		// printf("Clear canvas\n");
+		for (int i = 0; i < _height; i++) {
+			for (int j = 0; j < _width; j++) {
+				_screen[i][j]->clear();
+			}
+		}
+	}
 
 	void rebuild(int _h, int _w) {
 		// clear old data
@@ -108,6 +115,10 @@ public:
 				_screen[i][j] = new Cell();
 			}
 		}
+
+		printf("Rebuild Canvas\n");
+		printf("Canvas: width = %d, height = %d\n", _screen[0].size(), _screen.size());
+		printf("Screen: width = %d, height = %d\n", glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
 	}
 
 	Cell* getCellAt(int i, int j) {
@@ -118,10 +129,20 @@ public:
 	}
 
 	bool setCell(int x, int y, int layer, RGBColor color, bool isBounder) {
+		// printf("Pixel: (x: % d, y : % d)\n", x, y);
+
 		if (!isInScreen(x, y))
 			return false;
 
-		getCellAt(x, y)->set(x, y, layer, color, isBounder);
-		return true;
+		if (layer >= getCellAt(x, y)->layer()) {
+			getCellAt(x, y)->set(layer, color, isBounder);
+			return true;
+		}
+
+		return false;
+	}
+	
+	bool isValidCell(int x, int y) {
+		return isInScreen(x,y);
 	}
 };

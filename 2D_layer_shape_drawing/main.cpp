@@ -14,7 +14,7 @@ const RGBColor RGBColor::BLUE = RGBColor(0,0,255);
 // Value for Global variable
 int Global::height = 600;
 int Global::width = 800;
-Canvas Global::canvas = Canvas(height, width);
+Canvas Global::canvas = Canvas(Global::height, Global::width);
 
 int Global::maxLayer = 0;
 int Global::selectedShapeType = LINE_CODE;  // 0: No shape selected, 1: Rectangle, 2: Circle, 3: Triangle
@@ -77,7 +77,6 @@ void colorMenu(int option)
 
 void mouse(int button, int state, int x, int y)
 {
-    y = Global::height - y;
     if (button == GLUT_RIGHT_BUTTON && state == GLUT_DOWN)
     {
         // show MENU
@@ -106,14 +105,15 @@ void mouse(int button, int state, int x, int y)
             if (state == GLUT_UP) {
                 // unselect old shape
                 if (Global::selectedShape) {
-                    Global::selectedShape->setUnselected();
+                    Global::selectedShape->setUnselected(Global::canvas);
                 }
 
                 // select new shape
                 Global::selectedShape = Global::drawingApp.findShapebyLayer(Global::canvas.getCellAt(x, y)->layer());
 
                 if (Global::selectedShape) {
-                    Global::selectedShape->setSelected();
+                    printf("Selected layer: %d\n", Global::selectedShape->getLayer());
+                    Global::selectedShape->setSelected(Global::canvas);
                 }
             }
         }
@@ -145,9 +145,7 @@ void mouse(int button, int state, int x, int y)
 
 void motion(int x, int y) {
     // draw shape while moving 
-    if (Global::newShape) {
-         y = Global::height - y;
-       
+    if (Global::newShape) {       
          // printf("Moving point: (%d,%d)\n", x, y);
          Global::newShape->setEndPoint(Point(x, y));
 
@@ -161,29 +159,30 @@ void display()
     // Render here    
     glClear(GL_COLOR_BUFFER_BIT);
 
-    Global::canvas.rebuild(Global::height, Global:: width);
+    // Global::canvas.rebuild(Global::height, Global::width);
+    Global::canvas.clear();
 
-    Global::drawingApp.drawShapes();
+    Global::drawingApp.drawShapes(Global::canvas);
 
     glFlush();
     
-    // Swap buffers
+    // swap buffers
     glutSwapBuffers();
 }
 
 void reshape(int width, int height)
 {
     // Set the viewport and the projection matrix
+ 
     glViewport(0, 0, width, height);
     glMatrixMode(GL_PROJECTION);
     glLoadIdentity();
-    gluOrtho2D(0, width, 0, height);
+    glOrtho(0, width, height, 0, -1, 1);  // Make the GLUT and setPixel same coordinate
     glMatrixMode(GL_MODELVIEW);
-
-    // match Canvas with new size of screen
+    
     Global::height = height;
     Global::width = width;
-    Global::canvas.rebuild(height, width);
+    Global::canvas.rebuild(Global::height, Global::width);
 }
 
 int main(int argc, char** argv)

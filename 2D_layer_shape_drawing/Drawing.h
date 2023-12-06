@@ -13,9 +13,10 @@ public:
         shapes.push_back(newShape);
     }
 
-    void drawShapes() const {
+    void drawShapes(Canvas & canva) const {
         for (const auto& shape : shapes) {
-            shape->draw();
+            // shape->draw(canva);
+            shape->render(canva);
         }
     }
 

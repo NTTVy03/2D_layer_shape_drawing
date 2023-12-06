@@ -29,7 +29,7 @@ public:
 			Global::newShape = nullptr;
 		}
 
-		if (Global::selectedShape) Global::selectedShape->setUnselected();
+		if (Global::selectedShape) Global::selectedShape->setUnselected(Global::canvas);
 		Global::selectedShape = nullptr;
 	}
 };
