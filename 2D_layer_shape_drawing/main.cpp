@@ -9,7 +9,10 @@ const RGBColor RGBColor::WHITE = RGBColor(255, 255, 255);
 const RGBColor RGBColor::BLACK = RGBColor(0,0,0);
 const RGBColor RGBColor::RED = RGBColor(255, 0, 0);
 const RGBColor RGBColor::GREEN = RGBColor(0,255,0);
-const RGBColor RGBColor::BLUE = RGBColor(0,0,255);
+const RGBColor RGBColor::BLUE = RGBColor(0, 0, 255);
+const RGBColor RGBColor::NONE = RGBColor(-1, -1, -1);
+RGBColor RGBColor::BACKROUND = RGBColor::WHITE;
+RGBColor RGBColor::BOUNDER = RGBColor::BLACK;
 
 // Value for Global variable
 int Global::height = 600;
@@ -21,7 +24,7 @@ int Global::selectedShapeType = LINE_CODE;  // 0: No shape selected, 1: Rectangl
 Shape* Global::newShape = FactoryShape::getShape(LINE_CODE);
 Shape* Global::selectedShape = nullptr;
 bool Global::isSelectingMode = false; // is in selecting mode
-RGBColor Global::curFillColor = RGBColor::WHITE;
+RGBColor Global::curFillColor = RGBColor::NONE;
 DrawingApp Global::drawingApp = DrawingApp();
 
 void menu(int option)
@@ -132,7 +135,11 @@ void mouse(int button, int state, int x, int y)
             }
             else if (state == GLUT_UP) {
                 // printf("End point: (%d,%d)\n", x, y);
-                Global::newShape->setEndPoint(Point(x, y));
+                if (Global::selectedShapeType != LINE_CODE && Global::newShape->getStartPoint() == Point(x, y)) {
+                    // remove shape
+                    Global::drawingApp.removeShapebyLayer(Global::newShape->getLayer());
+                }
+                else Global::newShape->setEndPoint(Point(x, y));
 
                 Global::newShape = FactoryShape::getShape(Global::selectedShapeType);
 
@@ -147,16 +154,23 @@ void motion(int x, int y) {
     // draw shape while moving 
     if (Global::newShape) {       
          // printf("Moving point: (%d,%d)\n", x, y);
-         Global::newShape->setEndPoint(Point(x, y));
-
-        // redraw to add new shape
-        glutPostRedisplay();
+        if (!(Global::selectedShapeType != LINE_CODE 
+                && Global::newShape->getStartPoint() == Point(x, y))) {
+            Global::newShape->setEndPoint(Point(x, y));  
+            // redraw to add new shape
+            glutPostRedisplay();
+        }
     }
 }
 
 void display()
 {
-    // Render here    
+    // Convert integer values to normalized floating-point values
+    float r = RGBColor::BACKROUND.r() / 255.0;
+    float g = RGBColor::BACKROUND.g() / 255.0;
+    float b = RGBColor::BACKROUND.b() / 255.0;
+
+    glClearColor(r, g, b, 1.0);  // Set clear color using the converted values
     glClear(GL_COLOR_BUFFER_BIT);
 
     // Global::canvas.rebuild(Global::height, Global::width);

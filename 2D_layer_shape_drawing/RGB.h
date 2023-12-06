@@ -11,6 +11,9 @@ public:
 	static const RGBColor GREEN;
 	static const RGBColor BLUE;
 	static const RGBColor YELLOW;
+	static RGBColor BACKROUND;
+	static RGBColor BOUNDER;
+	static const RGBColor NONE;
 
 private:
 	int _r;

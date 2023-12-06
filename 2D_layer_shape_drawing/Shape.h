@@ -16,12 +16,16 @@ public:
 
     Point(): x(0), y(0) {}
     Point(int x, int y) : x(x), y(y) {}
+
+    bool operator==(const Point& other) const {
+        return (x == other.x) && (y == other.y);
+    }
 };
 
 class ShapeDrawer {
 public:
     static void setPixel(Canvas& canvas, int x, int y, int layer, RGBColor color, bool isBounder) {
-        if (canvas.setCell(x,y, layer, color, isBounder)) {
+        if (canvas.setCell(x,y, layer, color, isBounder) && color != RGBColor::NONE) {
             glBegin(GL_POINTS);
             glVertex2i(x, y);
             glEnd();
@@ -39,9 +43,11 @@ public:
         }
     }
 
-    static void drawCircle(Canvas &canvas,  int layer, int radius, Point center, RGBColor color = RGBColor::WHITE) {
+    static void drawCircle(Canvas &canvas,  int layer, int radius, Point center, RGBColor color = RGBColor::BOUNDER) {
         bool isBounder = true;
-        glColor3ub(color.r(), color.g(), color.b());
+        if (color != RGBColor::NONE) {
+            glColor3ub(color.r(), color.g(), color.b());
+        }
 
         if (radius <= 0) return;
 
@@ -77,11 +83,13 @@ public:
         }
     }
 
-    static void drawLine(Canvas& canvas, int layer, Point start, Point end, RGBColor color = RGBColor::WHITE) {
+    static void drawLine(Canvas& canvas, int layer, Point start, Point end, RGBColor color = RGBColor::BOUNDER) {
         // line is always a bounder
         bool isBounder = true;
 
-        glColor3ub(color.r(), color.g(), color.b());
+        if (color != RGBColor::NONE) {
+            glColor3ub(color.r(), color.g(), color.b());
+        }
 
         int x1 = start.x;
         int y1 = start.y;
@@ -143,7 +151,9 @@ public:
 
     static void fillColor(Canvas& canvas, int layer, Point startFillPoint, RGBColor fillColor) {
         bool isBounder = false;
-        glColor3ub(fillColor.r(), fillColor.g(), fillColor.b());
+        if (fillColor != RGBColor::NONE) {
+            glColor3ub(fillColor.r(), fillColor.g(), fillColor.b());
+        }
 
         // Non-recursive implementation
         stack<Point> s;
@@ -234,7 +244,9 @@ public:
 
     void render(Canvas& canvas) {
         draw(canvas);
-        ShapeDrawer::fillColor(canvas, layer, getStartFillPoint(), fillColor);
+        if (fillColor != RGBColor::NONE) {
+            ShapeDrawer::fillColor(canvas, layer, getStartFillPoint(), fillColor);
+        }
     }
 };
 
@@ -249,7 +261,8 @@ public:
     }
 
     void draw(Canvas& canvas) override {
-        ShapeDrawer::drawLine(canvas, this->getLayer(), startPoint, endPoint, fillColor);
+        RGBColor color = (fillColor == RGBColor::NONE ? RGBColor::BOUNDER : fillColor);
+        ShapeDrawer::drawLine(canvas, this->getLayer(), startPoint, endPoint, color);
     }
 
 };

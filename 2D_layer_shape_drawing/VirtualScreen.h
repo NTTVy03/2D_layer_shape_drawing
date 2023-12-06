@@ -13,7 +13,7 @@ private:
 public:
 	Cell() {
 		_layer = -1;
-		_color = RGBColor::BLACK;
+		_color = RGBColor::BACKROUND;
 		_isBounder = false;
 	}
 
@@ -28,17 +28,17 @@ public:
 	bool isBounder() { return _isBounder; }
 
 	void setLayer(int layer) { _layer = layer; }
-	void setColor(RGBColor color) { _color = color; }
+	void setColor(RGBColor color) { if (color != RGBColor::NONE) _color = color; }
 	void setIsBounder(bool isBounder) { _isBounder = isBounder; }
 	void set(int layer, RGBColor color, bool isBounder) {
 		_layer = layer;
-		_color = color;
+		if (color != RGBColor::NONE) _color = color;
 		_isBounder = isBounder;
 	}
 
 	void clear() {
 		_layer = -1;
-		_color = RGBColor::BLACK;
+		_color = RGBColor::BACKROUND;
 		_isBounder = false;
 	}
 };
