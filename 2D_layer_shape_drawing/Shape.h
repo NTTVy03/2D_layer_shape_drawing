@@ -115,9 +115,10 @@ public:
 
         int x = 0;
         int y = b;
-        setPixel(canvas, x + xT, y + yT, layer, color, isBounder);
+        setPixel(canvas, x + xT, y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, y + yT, layer, color, isBounder);
+        setPixel(canvas, x + xT, -y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, -y + yT, layer, color, isBounder);
 
-        while (x < st * y) {
+        while (x <= st * y) {
             if (p < 0) {
                 p = p + (2 * x + 3) * b * b;
             }
@@ -238,6 +239,7 @@ public:
             
             Cell* cell = canvas.getCellAt(x,y);
 
+            if (!cell) continue;
             if (cell->layer() == layer && cell->isBounder()) continue; // bounder of layer
             if (cell->layer() == layer && cell->color() == fillColor) continue; // already color
 
@@ -490,10 +492,6 @@ public:
         vertices.push_back(Point(startPoint.x + width, startPoint.y));
         vertices.push_back(Point(startPoint.x + width, startPoint.y + height));
         vertices.push_back(Point(startPoint.x, startPoint.y +  height));
-
-        for (auto vertex : vertices) {
-            printf("(%d,%d)\n", vertex.x, vertex.y);
-        }
     }
 
     Point getStartFillPoint() override {
@@ -631,7 +629,7 @@ public:
         center.x = (startPoint.x + endPoint.x) / 2;
         center.y = (startPoint.y + endPoint.y) / 2;
 
-        int angle = M_PI / 10.0;  // Starting angle of 36 degrees (in radians)
+        double angle = M_PI / 10.0;  // Starting angle of 36 degrees (in radians)
 
         for (int i = 0; i < 5; ++i) {
             Point vertex;
@@ -718,7 +716,7 @@ public:
 
         int numPoints = 5;
         double angleBetweenPoints = 2 * M_PI / numPoints;  // Angle between each point
-        double startAngle = - M_PI / 12;
+        double startAngle = M_PI / 4;
 
         Point centerPoint = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
         int radius_big = min(abs(startPoint.x - endPoint.x), abs(startPoint.y + endPoint.y));

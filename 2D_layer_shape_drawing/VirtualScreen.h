@@ -50,8 +50,8 @@ private:
 	int _width;
 	vector<vector<Cell*>> _screen;
 
-	bool isInScreen(int i, int j) {
-		return !(i < 0 || i >= _height || j < 0 || j >= _width);
+	bool isInScreen(int y, int x) {
+		return !(y < 0 || y >= _height || x < 0 || x >= _width);
 	}
 public:
 	Canvas() {
@@ -71,8 +71,10 @@ public:
 			}
 		}
 
+		/*
 		printf("Create Canvas\n");
 		printf("Canvas: width = %d, height = %d\n", _screen[0].size(), _screen.size());
+		*/
 	}
 
 	~Canvas() { erase(); }
@@ -102,7 +104,7 @@ public:
 
 	void rebuild(int _h, int _w) {
 		// clear old data
-		clear();
+		erase();
 
 		// build new data
 		_height = _h;
@@ -116,22 +118,24 @@ public:
 			}
 		}
 
+		/*
 		printf("Rebuild Canvas\n");
 		printf("Canvas: width = %d, height = %d\n", _screen[0].size(), _screen.size());
 		printf("Screen: width = %d, height = %d\n", glutGet(GLUT_WINDOW_WIDTH), glutGet(GLUT_WINDOW_HEIGHT));
+		*/
 	}
 
-	Cell* getCellAt(int i, int j) {
-		if (!isInScreen(i,j))
+	Cell* getCellAt(int x, int y) {
+		if (!isInScreen(y,x))
 			return nullptr;
 
-		return _screen[i][j];
+		return _screen[y][x];
 	}
 
 	bool setCell(int x, int y, int layer, RGBColor color, bool isBounder) {
 		// printf("Pixel: (x: % d, y : % d)\n", x, y);
 
-		if (!isInScreen(x, y))
+		if (!isInScreen(y, x))
 			return false;
 
 		if (layer >= getCellAt(x, y)->layer()) {
@@ -143,6 +147,6 @@ public:
 	}
 	
 	bool isValidCell(int x, int y) {
-		return isInScreen(x,y);
+		return isInScreen(y, x);
 	}
 };

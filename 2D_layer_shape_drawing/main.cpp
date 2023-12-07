@@ -16,7 +16,7 @@ RGBColor RGBColor::BOUNDER = RGBColor::BLACK;
 
 // Value for Global variable
 int Global::height = 600;
-int Global::width = 800;
+int Global::width = 1000;
 Canvas Global::canvas = Canvas(Global::height, Global::width);
 
 int Global::maxLayer = 0;
@@ -203,12 +203,13 @@ void reshape(int width, int height)
 {
     // Set the viewport and the projection matrix
  
+    // glMatrixMode(GL_PROJECTION);
+    // glLoadIdentity();
     glViewport(0, 0, width, height);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
     glOrtho(0, width, height, 0, -1, 1);  // Make the GLUT and setPixel same coordinate
-    glMatrixMode(GL_MODELVIEW);
-    
+    // glMatrixMode(GL_MODELVIEW);
+    // glLoadIdentity();
+
     Global::height = height;
     Global::width = width;
     Global::canvas.rebuild(Global::height, Global::width);
