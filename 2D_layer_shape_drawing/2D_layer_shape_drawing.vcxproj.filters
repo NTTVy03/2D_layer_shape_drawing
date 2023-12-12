@@ -41,5 +41,8 @@
     <ClInclude Include="Util.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Matrix.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>
