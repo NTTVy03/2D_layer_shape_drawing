@@ -66,8 +66,8 @@ public:
 
 		Matrix rotate = Matrix();
 		rotate.matrix[0][0] = cosAngle;
-		rotate.matrix[0][1] = -sinAngle;
-		rotate.matrix[1][0] = sinAngle;
+		rotate.matrix[0][1] = sinAngle;
+		rotate.matrix[1][0] = -sinAngle;
 		rotate.matrix[1][1] = cosAngle;
 
 		Multiply(rotate);
