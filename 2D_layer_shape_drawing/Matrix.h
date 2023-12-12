@@ -57,10 +57,12 @@ public:
 	}
 
 	void Rotate(double angle) {
+		printf("Rotate: %f\n", angle);
+
 		// angle: 0 - 360
 		double rad = angle * M_PI / 180;
 		double sinAngle = sin(rad);
-		double cosAngle = sin(rad);
+		double cosAngle = cos(rad);
 
 		Matrix rotate = Matrix();
 		rotate.matrix[0][0] = cosAngle;
@@ -72,6 +74,8 @@ public:
 	}
 
 	void Translate(double offsetX, double offsetY) {
+		printf("Translate: %f %f\n", offsetX, offsetY);
+
 		Matrix translate = Matrix();
 		translate.matrix[2][0] = offsetX;
 		translate.matrix[2][1] = offsetY;
@@ -80,6 +84,8 @@ public:
 	}
 
 	void Scale(double scaleX, double scaleY) {
+		printf("Scale: %f %f\n", scaleX, scaleY);
+
 		Matrix scale = Matrix();
 		scale.matrix[0][0] = scaleX;
 		scale.matrix[1][1] = scaleY;
@@ -115,6 +121,8 @@ public:
 		}
 
 		matrix = ans;
+
+		printMatrix();
 	}
 
 	vector<Point> TransformPoints(vector<Point> points) {
@@ -127,6 +135,7 @@ public:
 			ans.push_back(TransformPoint(points[i]));
 		}
 
+		printTranformPoints(ans);
 		return ans;
 	}
 
@@ -136,9 +145,31 @@ public:
 		int x = point.x;
 		int y = point.y;
 
-		int newX = matrix[0][0] * x + matrix[0][1] * y + matrix[0][2];
-		int newY = matrix[1][0] * x + matrix[1][1] * y + matrix[1][2];
+		int newX = matrix[0][0] * x + matrix[1][0] * y + matrix[2][0];
+		int newY = matrix[0][1] * x + matrix[1][1] * y + matrix[2][1];
 
 		return Point(newX, newY);
+	}
+
+	void printMatrix() {
+		int sz = 3;
+
+		for (int i = 0; i < sz; i++) {
+			for (int j = 0; j < sz; j++) {
+				printf("%f ", matrix[i][j]);
+			}
+			printf("\n");
+		}
+	}
+
+
+	void printTranformPoints(vector<Point> list) {
+		int sz = list.size();
+
+		printf("Trans %d points:\n", sz);
+
+		for (int i = 0; i < sz; i++) {
+			printf("(%d,%d)\n", list[i].x, list[i].y);
+		}
 	}
 };

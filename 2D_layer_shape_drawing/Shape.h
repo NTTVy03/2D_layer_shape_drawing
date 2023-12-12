@@ -310,7 +310,12 @@ public:
 
     // LAB 3
     void Rotate(double angle) {
+        Point center = getStartFillPoint();
+
+        matrix.Translate(-center.x, -center.y);
         matrix.Rotate(angle);
+        matrix.Translate(center.x, center.y);
+
         identifyVertices();
     }
 
@@ -320,7 +325,11 @@ public:
     }
 
     void Scale(double scaleX, double scaleY) {
+        Point center = getStartFillPoint();
+        Point newCenter = Point(center.x * scaleX, center.y * scaleY);
+
         matrix.Scale(scaleX, scaleY);
+        matrix.Translate(center.x - newCenter.x, center.y - newCenter.y);
         identifyVertices();
     }
 
@@ -338,6 +347,8 @@ public:
     Line() {};
 
     void identifyVertices() override {
+        vertices.clear();
+
         vertices.push_back(startPoint);
         vertices.push_back(endPoint);
 
@@ -350,7 +361,7 @@ public:
 
     void draw(Canvas& canvas) override {
         RGBColor color = (fillColor == RGBColor::NONE ? RGBColor::BOUNDER : fillColor);
-        ShapeDrawer::drawLine(canvas, this->getLayer(), startPoint, endPoint, color);
+        ShapeDrawer::drawLine(canvas, this->getLayer(), vertices[0], vertices[1], color);
     }
 
 };
@@ -517,6 +528,8 @@ public:
         vertices.push_back(Point(startPoint.x + width, startPoint.y));
         vertices.push_back(Point(startPoint.x + width, startPoint.y + height));
         vertices.push_back(Point(startPoint.x, startPoint.y +  height));
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -534,6 +547,7 @@ class Circle : public Shape {
 protected:
     int radius;
     Point center;
+    double scale = 1;
 public:
     Circle() {}
 
@@ -543,7 +557,7 @@ public:
     void identifyVertices() override {
         int dx = abs(startPoint.x - endPoint.x);
         int dy = abs(startPoint.y - endPoint.y);
-        radius = min(dx / 2, dy / 2);
+        radius = min(dx / 2, dy / 2) * scale;
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
         
@@ -564,12 +578,13 @@ class Ellipse : public Shape {
 protected:
     int radius_x, radius_y;
     Point center;
+    double scale = 1;
 public:
     Ellipse() {}
 
     void identifyVertices() override {
-        radius_x = abs(startPoint.x - endPoint.x) / 2;
-        radius_y = abs(startPoint.y - endPoint.y) / 2;
+        radius_x = abs(startPoint.x - endPoint.x) / 2 * scale;
+        radius_y = abs(startPoint.y - endPoint.y) / 2 * scale;
 
         radius_y = min(int(radius_x * 0.7), radius_y);
 

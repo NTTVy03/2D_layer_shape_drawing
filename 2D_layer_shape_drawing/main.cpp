@@ -215,6 +215,64 @@ void reshape(int width, int height)
     Global::canvas.rebuild(Global::height, Global::width);
 }
 
+void keyboardCallback(unsigned char key, int x, int y) {
+    if (!Global::selectedShape) return;
+    
+    double rotate = 0;
+    double scale = 1;
+
+    switch (key) {
+    // Rotate
+    case 'L':
+    case 'l':
+        rotate--;
+        break;
+    case 'R':
+    case 'r':
+        rotate++;
+        break;
+
+    // Scale
+    case '+':
+        scale = 1.1;
+        break;
+    case '-':
+        scale = 0.9;
+        break;
+    }
+
+    if (scale != 1) Global::selectedShape->Scale(scale, scale);
+    else if (rotate != 0) Global::selectedShape->Rotate(rotate);
+    
+    glutPostRedisplay();
+}
+
+void specialKeyCallback(int key, int x, int y) {
+    if (!Global::selectedShape) return;
+
+    double dx = 0;
+    double dy = 0;
+
+    switch (key) {
+    case GLUT_KEY_LEFT:
+        dx--;
+        break;
+    case GLUT_KEY_RIGHT:
+        dx++;
+        break;
+    case GLUT_KEY_UP:
+        dy--;
+        break;
+    case GLUT_KEY_DOWN:
+        dy++;
+        break;
+    }
+
+    if (dx || dy) Global::selectedShape->Translate(dx, dy);
+
+    glutPostRedisplay();
+}
+
 int main(int argc, char** argv)
 {
     // Initialize GLUT
@@ -233,6 +291,10 @@ int main(int argc, char** argv)
 
     // Register the mouse callback
     glutMouseFunc(mouse);
+
+    // Key press (Lab 3)
+    glutKeyboardFunc(keyboardCallback);
+    glutSpecialFunc(specialKeyCallback);
 
     // Register the motion callback - drawing
     glutMotionFunc(motion);
