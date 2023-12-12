@@ -14,6 +14,10 @@ using namespace std;
 
 class ShapeDrawer {
 public:
+    static int calcDistance(Point p1, Point p2) {
+        return sqrt((p1.x - p2.x) * (p1.x - p2.x) + (p1.y - p2.y) * (p1.y - p2.y));
+    }
+
     static void setPixel(Canvas& canvas, int x, int y, int layer, RGBColor color, bool isBounder) {
         if (canvas.setCell(x,y, layer, color, isBounder) && color != RGBColor::NONE) {
             glBegin(GL_POINTS);
@@ -33,27 +37,33 @@ public:
         }
     }
 
-    static void drawCircle(Canvas &canvas,  int layer, int radius, Point center, RGBColor color = RGBColor::BOUNDER) {
+    static void drawCircle(Canvas &canvas,  int layer, int radius, Point center, Matrix matrix, RGBColor color = RGBColor::BOUNDER) {
         bool isBounder = true;
         if (color != RGBColor::NONE) {
             glColor3ub(color.r(), color.g(), color.b());
         }
 
-        if (radius <= 0) return;
-
         int xT = center.x;
         int yT = center.y;
 
-        ShapeDrawer::setPixel(canvas, 0 + xT, radius + yT, layer, color, isBounder);
-        ShapeDrawer::setPixel(canvas, 0 + xT, -radius + yT, layer, color, isBounder);
-        ShapeDrawer::setPixel(canvas, radius + xT, 0 + yT, layer, color, isBounder);
-        ShapeDrawer::setPixel(canvas, -radius + xT, 0 + yT, layer, color, isBounder);
+        // Point firstPoint = matrix.TransformPoint(Point(0 + xT, radius + yT));
+        // radius = ShapeDrawer::calcDistance(center, firstPoint);
+        
+        if (radius <= 0) return;
+
+        vector<Point> v[8];
 
         int x = 0;
         int y = radius;
         int p = (int)5 / 4 - radius;
 
-        while (x < y) {
+        v[1].push_back(Point(x + xT, -y + yT));
+        v[4].push_back(Point(-y + xT, x + yT));
+        v[6].push_back(Point(x + xT, y + yT));
+        v[7].push_back(Point(y + xT, x + yT));
+
+        while (x <= y) {
+
             int xM = x + 1;
             int yM = y - (int)1 / 2;
 
@@ -66,25 +76,53 @@ public:
             }
 
             x++;
-            ShapeDrawer::setPixel(canvas, x + xT, y + yT, layer, color, isBounder); 	ShapeDrawer::setPixel(canvas, -x + xT, y + yT, layer, color, isBounder);
-            ShapeDrawer::setPixel(canvas, x + xT, -y + yT, layer, color, isBounder);	ShapeDrawer::setPixel(canvas, -x + xT, -y + yT, layer, color, isBounder);
-            ShapeDrawer::setPixel(canvas, y + xT, x + yT, layer, color, isBounder); 	ShapeDrawer::setPixel(canvas, -y + xT, x + yT, layer, color, isBounder);
-            ShapeDrawer::setPixel(canvas, y + xT, -x + yT, layer, color, isBounder);	ShapeDrawer::setPixel(canvas, -y + xT, -x + yT, layer, color, isBounder);
+
+            v[0].push_back(Point(y + xT, -x + yT));
+            v[1].push_back(Point(x + xT, -y + yT));
+            v[2].push_back(Point(-x + xT, -y + yT));
+            v[3].push_back(Point(-y + xT, -x + yT));
+            v[4].push_back(Point(-y + xT, x + yT));
+            v[5].push_back(Point(-x + xT, y + yT));
+            v[6].push_back(Point(x + xT, y + yT));
+            v[7].push_back(Point(y + xT, x + yT));
         }
+
+        reverse(v[1].begin(), v[1].end());
+        reverse(v[3].begin(), v[3].end());
+        reverse(v[5].begin(), v[5].end());
+        reverse(v[7].begin(), v[7].end());
+
+        Point prev = matrix.TransformPoint(v[0][0]);
+
+        for (int i = 0; i < 8; i++) {
+            int sz = v[i].size();
+            for (int j = 0; j < sz; j++) {
+                if (i == 0 && j == 0) continue;
+                Point p = matrix.TransformPoint(v[i][j]);
+                ShapeDrawer::drawLine(canvas, layer, prev, p);
+                prev = p;
+            }
+        }
+
+        ShapeDrawer::drawLine(canvas, layer, prev, matrix.TransformPoint(v[0][0]));
     }
 
-    static void drawEllipse(Canvas& canvas, int layer, int radius_x, int radius_y, Point center, RGBColor color = RGBColor::BOUNDER) {
+    static void drawEllipse(Canvas& canvas, int layer, int radius_x, int radius_y, Point center, Matrix matrix, RGBColor color = RGBColor::BOUNDER) {
         bool isBounder = true;
         if (color != RGBColor::NONE) {
             glColor3ub(color.r(), color.g(), color.b());
         }
 
-        if (radius_x <= 0 || radius_y <= 0) return;
-
-        int a = radius_x;
-        int b = radius_y;
         int xT = center.x;
         int yT = center.y;
+
+        Point leftPoint = matrix.TransformPoint(Point(-radius_x + xT, yT));
+        Point topPoint = matrix.TransformPoint(Point(0 + xT, - radius_y + yT));
+
+        int a = ShapeDrawer::calcDistance(center, leftPoint);
+        int b = ShapeDrawer::calcDistance(center, topPoint);
+
+        if (a <= 0 || b <= 0) return;
 
         // PT: (x/a)^2 + (y/b)^2 = 1
         //f(x,y) = (xa)^2 + (yb)^2 - (ab)^2
@@ -356,7 +394,7 @@ public:
     }
 
     Point getStartFillPoint() override {
-        return startPoint;
+        return Point((vertices[0].x + vertices[1].x) / 2, (vertices[0].y + vertices[1].y) / 2);
     }
 
     void draw(Canvas& canvas) override {
@@ -547,7 +585,6 @@ class Circle : public Shape {
 protected:
     int radius;
     Point center;
-    double scale = 1;
 public:
     Circle() {}
 
@@ -557,10 +594,10 @@ public:
     void identifyVertices() override {
         int dx = abs(startPoint.x - endPoint.x);
         int dy = abs(startPoint.y - endPoint.y);
-        radius = min(dx / 2, dy / 2) * scale;
+        radius = min(dx / 2, dy / 2);
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
-        
+
         center = matrix.TransformPoint(center);
     }
 
@@ -569,7 +606,7 @@ public:
     }
 
     void draw(Canvas& canvas) override {
-        ShapeDrawer::drawCircle(canvas, this->getLayer(), radius, center);
+        ShapeDrawer::drawCircle(canvas, this->getLayer(), radius, center, matrix);
     }
 };
 
@@ -589,7 +626,7 @@ public:
         radius_y = min(int(radius_x * 0.7), radius_y);
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
-    
+
         center = matrix.TransformPoint(center);
     }
 
@@ -598,7 +635,7 @@ public:
     }
 
     void draw(Canvas& canvas) override {
-        ShapeDrawer::drawEllipse(canvas, this->getLayer(), radius_x, radius_y, center);
+        ShapeDrawer::drawEllipse(canvas, this->getLayer(), radius_x, radius_y, center, matrix);
     }
 };
 

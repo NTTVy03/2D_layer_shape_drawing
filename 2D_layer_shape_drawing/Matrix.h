@@ -122,7 +122,7 @@ public:
 
 		matrix = ans;
 
-		printMatrix();
+		// printMatrix();
 	}
 
 	vector<Point> TransformPoints(vector<Point> points) {
@@ -135,7 +135,7 @@ public:
 			ans.push_back(TransformPoint(points[i]));
 		}
 
-		printTranformPoints(ans);
+		// printTranformPoints(ans);
 		return ans;
 	}
 
