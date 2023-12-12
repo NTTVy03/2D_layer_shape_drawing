@@ -512,7 +512,6 @@ public:
         vertices.push_back(vertex2);
         vertices.push_back(vertex3);
 
-
         vertices = matrix.TransformPoints(vertices);
     }
 
@@ -625,11 +624,11 @@ public:
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
 
-        center = matrix.TransformPoint(center);
+        // center = matrix.TransformPoint(center);
     }
 
     Point getStartFillPoint() override {
-        return center;
+        return matrix.TransformPoint(center);
     }
 
     void draw(Canvas& canvas) override {
@@ -654,11 +653,11 @@ public:
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
 
-        center = matrix.TransformPoint(center);
+        // center = matrix.TransformPoint(center);
     }
 
     Point getStartFillPoint() override {
-        return center;
+        return matrix.TransformPoint(center);
     }
 
     void draw(Canvas& canvas) override {
