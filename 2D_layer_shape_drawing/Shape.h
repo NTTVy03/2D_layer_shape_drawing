@@ -8,21 +8,9 @@
 
 #include "RGB.h"
 #include "VirtualScreen.h"
+#include "Matrix.h"
 
 using namespace std;
-
-class Point {
-public:
-    int x;
-    int y;
-
-    Point(): x(0), y(0) {}
-    Point(int x, int y) : x(x), y(y) {}
-
-    bool operator==(const Point& other) const {
-        return (x == other.x) && (y == other.y);
-    }
-};
 
 class ShapeDrawer {
 public:
@@ -276,6 +264,9 @@ protected:
     Point endPoint;
     int layer;
     RGBColor fillColor;
+
+    // Lab 3
+    Matrix matrix;
 public:
     Shape() {}
 
@@ -316,15 +307,42 @@ public:
             ShapeDrawer::fillColor(canvas, layer, getStartFillPoint(), fillColor);
         }
     }
+
+    // LAB 3
+    void Rotate(double angle) {
+        matrix.Rotate(angle);
+        identifyVertices();
+    }
+
+    void Translate(double offsetX, double offsetY) {
+        matrix.Translate(offsetX, offsetY);
+        identifyVertices();
+    }
+
+    void Scale(double scaleX, double scaleY) {
+        matrix.Scale(scaleX, scaleY);
+        identifyVertices();
+    }
+
+    void Shear(double shearX, double shearY) {
+        matrix.Shear(shearX, shearY);
+        identifyVertices();
+    }
 };
 
 // ================= SHAPE =============================
 // LINE - done
 class Line : public Shape {
+    vector<Point> vertices;
 public:
     Line() {};
 
-    void identifyVertices() override {}
+    void identifyVertices() override {
+        vertices.push_back(startPoint);
+        vertices.push_back(endPoint);
+
+        vertices = matrix.TransformPoints(vertices);
+    }
 
     Point getStartFillPoint() override {
         return startPoint;
@@ -367,6 +385,8 @@ public:
         vertices.push_back(startPoint);
         vertices.push_back(Point(startPoint.x + width, startPoint.y));
         vertices.push_back(Point(startPoint.x, startPoint.y + height));
+    
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -415,6 +435,9 @@ public:
         vertices.push_back(vertex1);
         vertices.push_back(vertex2);
         vertices.push_back(vertex3);
+
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -452,6 +475,8 @@ public:
         vertices.push_back(topRight);
         vertices.push_back(bottomRight);
         vertices.push_back(bottomLeft);
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -521,6 +546,8 @@ public:
         radius = min(dx / 2, dy / 2);
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
+        
+        center = matrix.TransformPoint(center);
     }
 
     Point getStartFillPoint() override {
@@ -547,6 +574,8 @@ public:
         radius_y = min(int(radius_x * 0.7), radius_y);
 
         center = Point((startPoint.x + endPoint.x) / 2, (startPoint.y + endPoint.y) / 2);
+    
+        center = matrix.TransformPoint(center);
     }
 
     Point getStartFillPoint() override {
@@ -595,6 +624,7 @@ public:
             angle += M_PI / 3.0;  // Increment angle by 60 degrees (in radians)
         }
 
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -641,6 +671,8 @@ public:
 
             angle += 2 * M_PI / 5.0;  // Increment angle by 72 degrees (in radians)
         }
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -688,6 +720,8 @@ public:
         vertices.push_back(Point(x - hcn_ngang, y + hcn_doc / 2)); // dinh hcn trai duoi
         vertices.push_back(Point(x - hcn_ngang, y - hcn_doc / 2)); // dinh hcn trai tren
         vertices.push_back(Point(x, y - hcn_doc / 2)); // dinh hcn phai tren
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -731,6 +765,8 @@ public:
 
             vertices.push_back(Point(centerPoint.x + (int)(radius_small * cos(angle)), centerPoint.y + (int)(radius_small * sin(angle))));
         }
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -782,6 +818,8 @@ public:
         vertices.push_back(Point(x - b / 2, y + b / 2)); // giao trai duoi
         vertices.push_back(Point(x - a / 2, y + b / 2)); // trai duoi
         vertices.push_back(Point(x - a / 2, y - b / 2)); // trai tren
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -825,6 +863,8 @@ public:
         vertices.push_back(topRight);
         vertices.push_back(bottomRight);
         vertices.push_back(bottomLeft);
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -872,6 +912,8 @@ public:
         vertices.push_back(Point(x - b / 2, y)); // giao trai
         vertices.push_back(Point(x - a / 2, y - a / 2)); // trai trai
         vertices.push_back(Point(x - a / 2 + b / 2, y - a / 2)); // trai phai
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {
@@ -909,6 +951,8 @@ public:
         vertices.push_back(Point(x + b / 2, y - a / 2)); // phai tren
         vertices.push_back(Point(x - b / 2 + c, y + a / 2)); // phai duoi
         vertices.push_back(Point(x - b / 2, y + a / 2)); // trai duoi
+
+        vertices = matrix.TransformPoints(vertices);
     }
 
     Point getStartFillPoint() override {

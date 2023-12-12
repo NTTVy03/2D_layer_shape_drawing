@@ -136,6 +136,7 @@
     <ClInclude Include="Drawing.h" />
     <ClInclude Include="Global.h" />
     <ClInclude Include="Matrix.h" />
+    <ClInclude Include="Point.h" />
     <ClInclude Include="RGB.h" />
     <ClInclude Include="Util.h" />
     <ClInclude Include="VirtualScreen.h" />

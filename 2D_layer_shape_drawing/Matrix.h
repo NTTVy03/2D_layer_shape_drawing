@@ -3,7 +3,7 @@
 #include <vector>
 #include <cmath>
 
-#include "Shape.h"
+#include "Point.h"
 
 using namespace std;
 

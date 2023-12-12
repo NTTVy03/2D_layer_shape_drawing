@@ -44,5 +44,8 @@
     <ClInclude Include="Matrix.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="Point.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

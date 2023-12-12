@@ -203,12 +203,12 @@ void reshape(int width, int height)
 {
     // Set the viewport and the projection matrix
  
-    // glMatrixMode(GL_PROJECTION);
-    // glLoadIdentity();
+    glMatrixMode(GL_PROJECTION);
+    glLoadIdentity();
     glViewport(0, 0, width, height);
     glOrtho(0, width, height, 0, -1, 1);  // Make the GLUT and setPixel same coordinate
-    // glMatrixMode(GL_MODELVIEW);
-    // glLoadIdentity();
+    glMatrixMode(GL_MODELVIEW);
+    glLoadIdentity();
 
     Global::height = height;
     Global::width = width;
