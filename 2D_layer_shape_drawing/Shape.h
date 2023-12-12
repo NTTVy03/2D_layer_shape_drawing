@@ -116,13 +116,12 @@ public:
         int xT = center.x;
         int yT = center.y;
 
-        Point leftPoint = matrix.TransformPoint(Point(-radius_x + xT, yT));
-        Point topPoint = matrix.TransformPoint(Point(0 + xT, - radius_y + yT));
-
-        int a = ShapeDrawer::calcDistance(center, leftPoint);
-        int b = ShapeDrawer::calcDistance(center, topPoint);
+        int a = radius_x;
+        int b = radius_y;
 
         if (a <= 0 || b <= 0) return;
+
+        vector<Point> v[4];
 
         // PT: (x/a)^2 + (y/b)^2 = 1
         //f(x,y) = (xa)^2 + (yb)^2 - (ab)^2
@@ -141,8 +140,11 @@ public:
 
         int x = 0;
         int y = b;
-        setPixel(canvas, x + xT, y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, y + yT, layer, color, isBounder);
-        setPixel(canvas, x + xT, -y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, -y + yT, layer, color, isBounder);
+
+        v[0].push_back(Point(x + xT, y + yT));
+        v[1].push_back(Point(-x + xT, y + yT));
+        v[2].push_back(Point(-x + xT, -y + yT));
+        v[3].push_back(Point(x + xT, -y + yT));
 
         while (x <= st * y) {
             if (p < 0) {
@@ -154,8 +156,10 @@ public:
             }
             x++;
 
-            setPixel(canvas, x + xT, y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, y + yT, layer, color, isBounder);
-            setPixel(canvas, x + xT, -y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, -y + yT, layer, color, isBounder);
+            v[0].push_back(Point(x + xT, y + yT));
+            v[1].push_back(Point(-x + xT, y + yT));
+            v[2].push_back(Point(-x + xT, -y + yT));
+            v[3].push_back(Point(x + xT, -y + yT));
         }
 
         // P2: x < a -> theo y
@@ -171,9 +175,29 @@ public:
             }
             y--;
 
-            setPixel(canvas, x + xT, y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, y + yT, layer, color, isBounder);
-            setPixel(canvas, x + xT, -y + yT, layer, color, isBounder); setPixel(canvas, -x + xT, -y + yT, layer, color, isBounder);
+            v[0].push_back(Point(x + xT, y + yT));
+            v[1].push_back(Point(-x + xT, y + yT));
+            v[2].push_back(Point(-x + xT, -y + yT));
+            v[3].push_back(Point(x + xT, -y + yT));
         }
+
+        reverse(v[0].begin(), v[0].end());
+        reverse(v[2].begin(), v[2].end());
+
+        Point prev = matrix.TransformPoint(v[0][0]);
+
+        for (int i = 0; i < 4; i++) {
+            int sz = v[i].size();
+            for (int j = 0; j < sz; j++) {
+                if (i == 0 && j == 0) continue;
+                // if (i != 1) continue;
+                Point p = matrix.TransformPoint(v[i][j]);
+                ShapeDrawer::drawLine(canvas, layer, prev, p);
+                prev = p;
+            }
+        }
+
+        ShapeDrawer::drawLine(canvas, layer, prev, matrix.TransformPoint(v[0][0]));
     }
 
     static void drawLine(Canvas& canvas, int layer, Point start, Point end, RGBColor color = RGBColor::BOUNDER) {
@@ -339,7 +363,7 @@ public:
     virtual void identifyVertices() = 0;
     virtual Point getStartFillPoint() = 0;
 
-    void render(Canvas& canvas) {
+    virtual void render(Canvas& canvas) {
         draw(canvas);
         if (fillColor != RGBColor::NONE) {
             ShapeDrawer::fillColor(canvas, layer, getStartFillPoint(), fillColor);
@@ -402,6 +426,9 @@ public:
         ShapeDrawer::drawLine(canvas, this->getLayer(), vertices[0], vertices[1], color);
     }
 
+    void render(Canvas& canvas) override {
+        draw(canvas);
+    }
 };
 
 // TRIANGLE
