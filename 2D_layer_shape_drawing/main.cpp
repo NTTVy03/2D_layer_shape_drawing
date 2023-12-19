@@ -3,6 +3,7 @@
 
 #include "Define.h"
 #include "Global.h"
+#include "Timer.h"
 
 // Define color
 const RGBColor RGBColor::WHITE = RGBColor(255, 255, 255);
@@ -182,6 +183,8 @@ void motion(int x, int y) {
 
 void display()
 {
+    Timer::startTime();
+
     // Convert integer values to normalized floating-point values
     float r = RGBColor::BACKROUND.r() / 255.0;
     float g = RGBColor::BACKROUND.g() / 255.0;
@@ -199,6 +202,10 @@ void display()
     
     // swap buffers
     glutSwapBuffers();
+
+    Timer::stopTime();
+
+    printf("Process time: %f(ms)\n", Timer::getDuration());
 }
 
 void reshape(int width, int height)
