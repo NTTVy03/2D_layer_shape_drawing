@@ -57,7 +57,7 @@ public:
 	}
 
 	void Rotate(double angle) {
-		printf("Rotate: %f\n", angle);
+		// printf("Rotate: %f\n", angle);
 
 		// angle: 0 - 360
 		double rad = angle * M_PI / 180;
@@ -74,7 +74,7 @@ public:
 	}
 
 	void Translate(double offsetX, double offsetY) {
-		printf("Translate: %f %f\n", offsetX, offsetY);
+		// printf("Translate: %f %f\n", offsetX, offsetY);
 
 		Matrix translate = Matrix();
 		translate.matrix[2][0] = offsetX;
@@ -84,7 +84,7 @@ public:
 	}
 
 	void Scale(double scaleX, double scaleY) {
-		printf("Scale: %f %f\n", scaleX, scaleY);
+		// printf("Scale: %f %f\n", scaleX, scaleY);
 
 		Matrix scale = Matrix();
 		scale.matrix[0][0] = scaleX;

@@ -2,6 +2,8 @@
 
 #pragma once
 
+#include <math.h>
+
 class RGBColor {
 public:
 	// color
@@ -19,6 +21,8 @@ private:
 	int _r;
 	int _g;
 	int _b;
+
+	double selectedFactor = 0.5;
 public:
 	RGBColor() {
 		_r = 255;
@@ -30,16 +34,47 @@ public:
 		_r = r;
 		_g = g;
 		_b = b;
+
+		normalize();
 	}
 
 	int r() { return _r; }
 	int g() { return _g; }
 	int b() { return _b; }
 
+	void normalize() {
+		int MAX = 255;
+		_r = (_r > MAX ? MAX : _r);
+		_g = (_g > MAX ? MAX : _g);
+		_b = (_b > MAX ? MAX : _b);
+	}
+
 	void set(int r, int g, int b) {
 		_r = r;
 		_g = g;
 		_b = b;
+
+		normalize();
+	}
+
+	void setToUnselectedColor() {
+		if (*this == NONE) return;
+
+		_r = (double)(_r / selectedFactor);
+		_g = (double)(_g / selectedFactor);
+		_b = (double)(_b / selectedFactor);
+
+		normalize();
+	}
+
+	void setToSelectedColor() {
+		if (*this == NONE) return;
+
+		_r = (double)(_r * selectedFactor);
+		_g = (double)(_g * selectedFactor);
+		_b = (double)(_b * selectedFactor);
+
+		normalize();
 	}
 
 	RGBColor& operator=(const RGBColor& other) {

@@ -32,4 +32,20 @@ public:
 		if (Global::selectedShape) Global::selectedShape->setUnselected(Global::canvas);
 		Global::selectedShape = nullptr;
 	}
+
+	static void unselectShape() {
+		if (Global::selectedShape) {
+			Global::selectedShape->setUnselected(Global::canvas);
+			Global::selectedShape = nullptr;
+
+			glutPostRedisplay();
+		}
+	}
+
+	static void selectShape() {
+		if (Global::selectedShape) {
+			Global::selectedShape->setSelected(Global::canvas);
+			glutPostRedisplay();
+		}
+	}
 };

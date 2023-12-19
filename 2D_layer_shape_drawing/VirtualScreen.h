@@ -72,7 +72,8 @@ public:
 		}
 
 		/*
-		printf("Create Canvas\n");
+		
+		f("Create Canvas\n");
 		printf("Canvas: width = %d, height = %d\n", _screen[0].size(), _screen.size());
 		*/
 	}

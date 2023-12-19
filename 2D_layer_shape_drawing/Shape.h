@@ -327,6 +327,8 @@ protected:
     int layer;
     RGBColor fillColor;
 
+    bool isSelected = false;
+
     // Lab 3
     Matrix matrix;
 public:
@@ -356,8 +358,19 @@ public:
         layer = l;
     }
 
-    void setSelected(Canvas& canvas) {}
-    void setUnselected(Canvas& canvas) {}
+    void setSelected(Canvas& canvas) {
+        if (!isSelected) {
+            isSelected = true;
+            fillColor.setToSelectedColor();
+        }
+    }
+
+    void setUnselected(Canvas& canvas) {
+        if (isSelected) {
+            isSelected = false;
+            fillColor.setToUnselectedColor();
+        }
+    }
 
     virtual void draw(Canvas &canvas) = 0;
     virtual void identifyVertices() = 0;
@@ -406,7 +419,7 @@ public:
 class Line : public Shape {
     vector<Point> vertices;
 public:
-    Line() {};
+    Line() { fillColor = RGBColor::BOUNDER; };
 
     void identifyVertices() override {
         vertices.clear();
@@ -422,8 +435,8 @@ public:
     }
 
     void draw(Canvas& canvas) override {
-        RGBColor color = (fillColor == RGBColor::NONE ? RGBColor::BOUNDER : fillColor);
-        ShapeDrawer::drawLine(canvas, this->getLayer(), vertices[0], vertices[1], color);
+        fillColor = (fillColor == RGBColor::NONE ? RGBColor::BOUNDER : fillColor);
+        ShapeDrawer::drawLine(canvas, this->getLayer(), startPoint, endPoint, fillColor);
     }
 
     void render(Canvas& canvas) override {

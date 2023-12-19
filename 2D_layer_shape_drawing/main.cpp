@@ -76,8 +76,10 @@ void colorMenu(int option)
     if (Global::isSelectingMode && Global::selectedShape)
     {
         // Refill the selected shape with the selected color
-        Global::selectedShape->setFillColor(Global::curFillColor);
-        glutPostRedisplay();
+        RGBColor color = Global::curFillColor;
+        color.setToSelectedColor();
+        Global::selectedShape->setFillColor(color);
+        Global::unselectShape();
     }
 }
 
@@ -123,7 +125,7 @@ void mouse(int button, int state, int x, int y)
             if (state == GLUT_UP) {
                 // unselect old shape
                 if (Global::selectedShape) {
-                    Global::selectedShape->setUnselected(Global::canvas);
+                    Global::unselectShape();
                 }
 
                 // select new shape
@@ -131,7 +133,7 @@ void mouse(int button, int state, int x, int y)
 
                 if (Global::selectedShape) {
                     printf("Selected layer: %d\n", Global::selectedShape->getLayer());
-                    Global::selectedShape->setSelected(Global::canvas);
+                    Global::selectShape();
                 }
             }
         }
